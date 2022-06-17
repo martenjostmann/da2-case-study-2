@@ -1,4 +1,5 @@
 scikit-learn
 tensorflow
+tensorflow_datasets
 pandas
 jupyter
