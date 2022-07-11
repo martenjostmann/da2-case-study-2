@@ -20,7 +20,7 @@ da2-case-study-2
 │
 └───models
 │   │
-│   └───EfficentNetV2_best
+│   └───EfficientNetV2_best
 │
 └───notebooks
 │   │   create_predictions.ipynb
