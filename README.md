@@ -6,14 +6,10 @@ The Goal of the Case Study 2 is to predict Objects like Ponds, Pools, Solar Pane
 
 ## Requirements
 ---
-A few additional modules are required:
-- Tensorflow
-- scikit-image
-
-These modules are stored in `requirements.txt` and can be installed via the following command:  
+A few additional modules are required. These modules are stored in `requirements.txt` and can be installed via the following command:  
 `$ pip install -r requirements.txt`
 
-In Google Colab this modules are already installed
+In Google Colab this modules are already installed.
 
 ## File Structure
 ---
@@ -24,7 +20,7 @@ da2-case-study-2
 │
 └───models
 │   │
-│   └───EfficientNetV2_best
+│   └───EfficientNet_v2_best
 │
 └───notebooks
 │   │   create_predictions.ipynb
@@ -38,8 +34,9 @@ da2-case-study-2
     |   |   save_data.py            <- Used to save the final bounding boxes with class label as csv file
     │
     └───d02_processing
-    │   │   preprocess.py      
+    │   │   preprocess.py           <- Preprocessing of the train and val data as well as the preprocessing of the patches
     |   |   postprocess.py          <- Reduce the amount of bounding boxes
+    |   |   sliding_window.py       <- Implemented the sliding window
     │
     └───d03_model
     │   │   transfer_learning.py    <- Get Preprocessing of pretrained models
