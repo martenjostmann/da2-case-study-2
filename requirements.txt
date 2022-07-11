@@ -1,4 +1,7 @@
-scikit-learn
-tensorflow
-pandas
-jupyter
+scikit-learn~=1.0.2
+tensorflow~=2.8.2
+jupyter~=1.0.0
+keras~=2.8.0
+numpy~=1.23.1
+pillow~=7.1.2
+matplotlib~=3.2.2
