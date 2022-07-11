@@ -45,7 +45,7 @@ da2-case-study-2
     │   │   bounding_box.py         <- Visualize bounding boxes before and after reduction
     │
     └───d05_evalutation
-    │   │   evaluate_predictions.py <- Calculate Tp, FP, FN and F1-Score 
+    │   │   evaluate_predictions.py <- Calculate TP, FP, FN and F1-Score 
 ```
 
 ## Notebooks
