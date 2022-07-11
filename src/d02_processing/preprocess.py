@@ -250,82 +250,78 @@ def preprocess_train(data):
     val_dataset: tf.data.Dataset
     """
 
-    split_factor = 0.2  # TESTING: 0.3
-    split_factor_bg = 0.0794  # TESTING: 0.3
+    # select hyper-parameters
+    split_factor = 0.2
 
+    # use a smaller split_factor for the background data to balance it with the relevant dataset for better validation
+    split_factor_bg = 0.0794
+
+    # take background dataset
     count_bg = 3110
     background = data.take(count_bg)
-    # background = background.repeat(2)
-    # count_bg *= 2
-    # background = background.map(lambda x,y: (x,0))
 
+    # shuffling background data
     background = shuffle(background, dataset_length=count_bg)
-    background_train, background_val = split(background, dataset_length=count_bg,
-                                             split_factor=split_factor_bg)  # 0.0659
+    background_train, background_val = split(background, dataset_length=count_bg, split_factor=split_factor_bg)
 
+    # applying data augmentation
     background_train = apply_data_augmentation(background_train)
-    # background_train = background_train.map(lambda x,y: (tf.cast(x, tf.uint8),y))
+    background_val = apply_data_augmentation(background_val)
 
-    background_val = apply_data_augmentation(background_val, random_state=None)
-    # background_val = background_val.map(lambda x,y: (tf.cast(x, tf.uint8),y))
-
+    # select relevant data
     rel = data.skip(3110)
     count_rel = 206
 
-    # rel = balance(rel)  # TESTING  NOT GOOD
-    # count_rel = 526  # TESTING  NOT GOOD
-
     rel = shuffle(rel, dataset_length=count_rel)
 
+    # split train and val set before oversampling to avoid incorrect validations
     rel_train, rel_val = split(rel, dataset_length=count_rel, split_factor=split_factor)
 
-    rel_repeat = 6  # TESTING: 5
+    # oversample relevant data
+    rel_repeat = 6
     rel_train = rel_train.repeat(rel_repeat)
     rel_val = rel_val.repeat(rel_repeat)
     count_rel *= rel_repeat
 
+    # shuffling relevant data
     rel_train = shuffle(rel_train, dataset_length=int(count_rel * (1 - split_factor)))  # 1578
     rel_val = shuffle(rel_val, dataset_length=int(count_rel * split_factor))  # 1578
 
+    # applying data augmentation
     rel_train = apply_data_augmentation(rel_train)
-    # rel_train = rel_train.map(lambda x,y: (tf.cast(x, tf.uint8),y))
+    rel_val = apply_data_augmentation(rel_val)
 
-    rel_val = apply_data_augmentation(rel_val, random_state=None)
-    # rel_val = rel_val.map(lambda x,y: (tf.cast(x, tf.uint8),y))
-
-    # return rel, rel_train, rel_val
-
-    # return background.take(100).batch(1), background.skip(100).batch(1)
-
+    # concatenating background and relevant data
     data_train = background_train.concatenate(rel_train)
     data_val = background_val.concatenate(rel_val)
 
-    # data_train = shuffle(data_train, dataset_length=int(count_rel * split_factor) + int(count_bg * split_factor_bg))
-    data_train = shuffle(data_train, dataset_length=int(count_rel * (1 - split_factor)) + int(
-        count_bg * (1 - split_factor_bg)))  # 5325 # 4688
+    # final shuffling
+    length = int(count_rel * (1 - split_factor)) + int(count_bg * (1 - split_factor_bg))
+    data_train = shuffle(data_train, dataset_length=length)
 
+    # apply preprocessor if needed
     preprocessor = transfer_learning.get_preprocessor()
     if preprocessor:
         data_train = data_train.map(lambda x, y: (preprocessor(x), y))
         data_val = data_val.map(lambda x, y: (preprocessor(x), y))
 
+    # resize dataset if needed
     resizing = transfer_learning.get_input_size()
     if resizing:
         data_train = resize(data_train, resizing)
         data_val = resize(data_val, resizing)
 
-    data_train = data_train.map(lambda x, y: (tf.cast(x, tf.uint8), y))
-    data_val = data_val.map(lambda x, y: (tf.cast(x, tf.uint8), y))
-    # data = normalize(data)
-
-    # data = shuffle(data, dataset_length=3110+526*6)
-    # train, val = split(data, dataset_length=3110+526*6)
-
+    # apply one hot encoding
     data_train = one_hot_encode(data_train)
     data_val = one_hot_encode(data_val)
 
+    # apply prefetching
     AUTOTUNE = tf.data.AUTOTUNE
     data_train = data_train.prefetch(buffer_size=AUTOTUNE)
     data_val = data_val.prefetch(buffer_size=AUTOTUNE)
 
-    return data_train.batch(32), data_val.batch(32)
+    # apply batch size
+    data_train = data_train.batch(32)
+    data_val = data_val.batch(32)
+
+    return data_train, data_val
