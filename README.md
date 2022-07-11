@@ -1,5 +1,9 @@
 # Case Study: Satellite image object detection
 
+The Goal of the Case Study 2 is to predict Objects like Ponds, Pools, Solar Panels and Trampolines within big Satellite images:
+
+![Goal](goal.png)
+
 ## Requirements
 ---
 A few additional modules are required:
@@ -34,7 +38,7 @@ da2-case-study-2
     |   |   save_data.py            <- Used to save the final bounding boxes with class label as csv file
     │
     └───d02_processing
-    │   │   preprocess_data.py      
+    │   │   preprocess.py      
     |   |   postprocess.py          <- Reduce the amount of bounding boxes
     │
     └───d03_model
