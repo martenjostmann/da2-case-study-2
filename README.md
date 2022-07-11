@@ -12,7 +12,7 @@ A few additional modules are required. These modules are stored in `requirements
 In Google Colab this modules are already installed.
 
 ## File Structure
----
+
 ```
 da2-case-study-2
 │   README.md
@@ -49,7 +49,7 @@ da2-case-study-2
 ```
 
 ## Notebooks
----
+
 
 In the notebooks directory the `create_predictions.ipynb` can be used to create predictions on every image that is placed inside the data folder. ALso the path of the directory can be adjusted inside of the notebook.
 
