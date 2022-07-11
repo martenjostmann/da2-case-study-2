@@ -51,6 +51,6 @@ da2-case-study-2
 ## Notebooks
 
 
-In the notebooks directory the `create_predictions.ipynb` can be used to create predictions on every image that is placed inside the data folder. ALso the path of the directory can be adjusted inside of the notebook.
+In the notebooks directory the `create_predictions.ipynb` can be used to create predictions on every image that is placed inside the data folder. Also the path of the directory can be adjusted inside of the notebook.
 
 The `training.ipynb` was used to play around with the data and train different models and final evaluate them on the 8000x8000 images.
