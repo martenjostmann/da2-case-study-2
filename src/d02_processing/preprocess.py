@@ -12,18 +12,18 @@ from src.d03_model import transfer_learning
 # We have 3110 background images. Therefore, the predefined split.
 # Not used in our current approach anymore since len(dataset) cannot be reliably used with datasets.
 def oversample(dataset, split_index=3110):
-  dataset_bg = dataset.take(split_index)
-  dataset_rel = dataset.skip(split_index)
+    dataset_bg = dataset.take(split_index)
+    dataset_rel = dataset.skip(split_index)
 
-  mult = len(dataset_bg) / len(dataset_rel)
+    mult = len(dataset_bg) / len(dataset_rel)
 
-  if mult < 1:
-    return dataset
+    if mult < 1:
+        return dataset
 
-  dataset_rel = dataset_rel.repeat(int(mult))
+    dataset_rel = dataset_rel.repeat(int(mult))
 
-  return dataset_bg.concatenate(dataset_rel)
-  
+    return dataset_bg.concatenate(dataset_rel)
+
 
 def one_hot_encode(dataset):
     """
@@ -44,286 +44,288 @@ def one_hot_encode(dataset):
 
 
 def split(dataset, split_factor=0.3, dataset_length=3636):
-  """
-  Split the data into two separate dataset for instance into train and validation data.
+    """
+    Split the data into two separate dataset for instance into train and validation data.
 
-  Parameters
-  ----------
-  dataset: tf.data.Dataset
-    Dataset that should be splitted
-  split_factor: float
-    Percentage of the split (default: 0.3)
-  dataset_length: int
-    Length of the data that should be splitted (default: 3636)
+    Parameters
+    ----------
+    dataset: tf.data.Dataset
+      Dataset that should be splitted
+    split_factor: float
+      Percentage of the split (default: 0.3)
+    dataset_length: int
+      Length of the data that should be splitted (default: 3636)
 
-  Returns
-  -------
-  returns: tf.data.Dataset
-    Dataset with one hot encoded class labels
-  """
+    Returns
+    -------
+    returns: tf.data.Dataset
+      Dataset with one hot encoded class labels
+    """
 
-  skip = int(dataset_length * (1 - split_factor))
-  return dataset.take(skip), dataset.skip(skip)
+    skip = int(dataset_length * (1 - split_factor))
+    return dataset.take(skip), dataset.skip(skip)
 
 
 def apply_data_augmentation(dataset, random_state=None):
-  """
-  Data augment the images in the dataset. Apply flip, rotation, crop, zoom
+    """
+    Data augment the images in the dataset. Apply flip, rotation, crop, zoom
 
-  Parameters
-  ----------
-  dataset: tf.data.Dataset
-    Dataset that should be data augmented
-  random_state: int
-    Set a random state to get the same random augmentation every time
+    Parameters
+    ----------
+    dataset: tf.data.Dataset
+      Dataset that should be data augmented
+    random_state: int
+      Set a random state to get the same random augmentation every time
 
-  Returns
-  -------
-  returns: tf.data.Dataset
-    Dataset with data augmented data
-  """
+    Returns
+    -------
+    returns: tf.data.Dataset
+      Dataset with data augmented data
+    """
 
-  pipe = tf.keras.Sequential([
-      keras.layers.experimental.preprocessing.RandomFlip("horizontal_and_vertical", seed=random_state),
-      keras.layers.experimental.preprocessing.RandomRotation(1, seed=random_state),
-      keras.layers.RandomCrop(224, 224, seed=random_state),
-      keras.layers.RandomZoom((-0.15,0), seed=random_state)
-  ])
-  dataset = dataset.map(lambda x,y: (pipe(x, training=True),y))
+    pipe = tf.keras.Sequential([
+        keras.layers.experimental.preprocessing.RandomFlip("horizontal_and_vertical", seed=random_state),
+        keras.layers.experimental.preprocessing.RandomRotation(1, seed=random_state),
+        keras.layers.RandomCrop(224, 224, seed=random_state),
+        keras.layers.RandomZoom((-0.15, 0), seed=random_state)
+    ])
+    dataset = dataset.map(lambda x, y: (pipe(x, training=True), y))
 
-  return dataset
+    return dataset
 
 
 def shuffle(dataset, dataset_length=3636):
-  """
-  Shuffle the data
+    """
+    Shuffle the data
 
-  Parameters
-  ----------
-  dataset: tf.data.Dataset
-    Dataset that should be shuffled
-  dataset_length: int
-    Defines the buffer size. For a complete shuffle this value should be
-    greater or equals to the size of the dataset (default: 3636)
+    Parameters
+    ----------
+    dataset: tf.data.Dataset
+      Dataset that should be shuffled
+    dataset_length: int
+      Defines the buffer size. For a complete shuffle this value should be
+      greater or equals to the size of the dataset (default: 3636)
 
-  Returns
-  -------
-  returns: tf.data.Dataset
-    Dataset that is shuffled
-  """
+    Returns
+    -------
+    returns: tf.data.Dataset
+      Dataset that is shuffled
+    """
 
-  return dataset.shuffle(dataset_length, seed=42, reshuffle_each_iteration=False)
+    return dataset.shuffle(dataset_length, seed=42, reshuffle_each_iteration=False)
 
 
 def resize(dataset, size):
-  """
-  Resize dataset
+    """
+    Resize dataset
 
-  Parameters
-  ----------
-  dataset: tf.data.Dataset
-    Dataset that should be resized
-  size: (height, width) -> (int, int)
-    New Size of the dataset
+    Parameters
+    ----------
+    dataset: tf.data.Dataset
+      Dataset that should be resized
+    size: (height, width) -> (int, int)
+      New Size of the dataset
 
 
-  Returns
-  -------
-  returns: tf.data.Dataset
-    Dataset that is resized
-  """
+    Returns
+    -------
+    returns: tf.data.Dataset
+      Dataset that is resized
+    """
 
-  return dataset.map(lambda x,y: (tf.image.resize(x, size),y))
+    return dataset.map(lambda x, y: (tf.image.resize(x, size), y))
 
 
 def normalize(dataset):
-  """
-  Normalize the data between zero and one. CAUTION: This function should only be applied when training
-  an own model. When training a pretrained model use the corresponding preprocess function of the model.
+    """
+    Normalize the data between zero and one. CAUTION: This function should only be applied when training
+    an own model. When training a pretrained model use the corresponding preprocess function of the model.
 
-  Parameters
-  ----------
-  dataset: tf.data.Dataset
-    Dataset that should be normalized
+    Parameters
+    ----------
+    dataset: tf.data.Dataset
+      Dataset that should be normalized
 
 
-  Returns
-  -------
-  returns: tf.data.Dataset
-    Dataset that is normalized between 0 and 1
-  """
+    Returns
+    -------
+    returns: tf.data.Dataset
+      Dataset that is normalized between 0 and 1
+    """
 
-  return dataset.map(lambda x,y: (x/255.0,y))
+    return dataset.map(lambda x, y: (x / 255.0, y))
 
 
 def preprocess_patches(data, size=transfer_learning.get_input_size()):
-  """
-  Apply the same preprocessing ont the images patches that where extracted by the
-  sliding window approach
+    """
+    Apply the same preprocessing ont the images patches that where extracted by the
+    sliding window approach
 
-  Parameters
-  ----------
-  data: tf.data.Dataset
-    Dataset with patches that should be preprocessed
-  size: int
-    Input size of the pretrained network to which the images should be resized to
+    Parameters
+    ----------
+    data: tf.data.Dataset
+      Dataset with patches that should be preprocessed
+    size: int
+      Input size of the pretrained network to which the images should be resized to
 
-  Returns
-  -------
-  returns: tf.data.Dataset
-    Dataset with preprocessed patches
-  """
+    Returns
+    -------
+    returns: tf.data.Dataset
+      Dataset with preprocessed patches
+    """
 
-  preprocessor = transfer_learning.get_preprocessor()
-  if preprocessor:
-    data = data.map(lambda x: preprocessor(x))
+    preprocessor = transfer_learning.get_preprocessor()
+    if preprocessor:
+        data = data.map(lambda x: preprocessor(x))
 
-  if size:
-    data = data.map(lambda x: tf.image.resize(x, size))
+    if size:
+        data = data.map(lambda x: tf.image.resize(x, size))
 
-  return data
+    return data
 
 
 @tf.function
 def get_balance_factor(label):
-  """
-  Function that can be used to balance the dataset by duplicating the data.
-  This functions used the get_balance_factor() function above where the number
-  of repeatings can be adjusted.
+    """
+    Function that can be used to balance the dataset by duplicating the data.
+    This functions used the get_balance_factor() function above where the number
+    of repeatings can be adjusted.
 
-  Parameters
-  ----------
-  label: int
+    Parameters
+    ----------
+    label: int
 
-  Returns
-  -------
-  returns: int
-    The amount of repetitions a specific class needs in order to balance the relevant data subset
-  """
+    Returns
+    -------
+    returns: int
+      The amount of repetitions a specific class needs in order to balance the relevant data subset
+    """
 
-  if label == 1:
-    return tf.cast(15, tf.int64)  # 135
-  elif label == 2:
-    return tf.cast(7, tf.int64)  # 140
-  elif label == 3:
-    return tf.cast(3, tf.int64)  # 111
-  elif label == 4:
-    return tf.cast(1, tf.int64)  # 140    ## 526
-  else:
-    return tf.cast(1, tf.int64)
+    if label == 1:
+        return tf.cast(15, tf.int64)  # 135
+    elif label == 2:
+        return tf.cast(7, tf.int64)  # 140
+    elif label == 3:
+        return tf.cast(3, tf.int64)  # 111
+    elif label == 4:
+        return tf.cast(1, tf.int64)  # 140    ## 526
+    else:
+        return tf.cast(1, tf.int64)
 
 
 def balance(data):
-  """
-  Function that can be used to balance the dataset by duplicating the data.
-  This functions used the get_balance_factor() function above where the number
-  of repeatings can be adjusted.
+    """
+    Function that can be used to balance the dataset by duplicating the data.
+    This functions used the get_balance_factor() function above where the number
+    of repeatings can be adjusted.
 
-  Parameters
-  ----------
-  data: tf.data.Dataset
-    Dataset that should be balanced
+    Parameters
+    ----------
+    data: tf.data.Dataset
+      Dataset that should be balanced
 
-  Returns
-  -------
-  returns: tf.data.Dataset
-    Balanced dataset
-  """
+    Returns
+    -------
+    returns: tf.data.Dataset
+      Balanced dataset
+    """
 
-  return data.flat_map(
-      lambda x,y: tf.data.Dataset.from_tensors((x,y)).repeat(get_balance_factor(y)) # get_balance_factor(y)
-  )
+    return data.flat_map(
+        lambda x, y: tf.data.Dataset.from_tensors((x, y)).repeat(get_balance_factor(y))  # get_balance_factor(y)
+    )
 
 
 def preprocess_train(data):
-  """
-  Function to preprocess the data
+    """
+    Function to preprocess the data
 
-  Parameters
-  ----------
-  data: tf.data.Dataset
-    Dataset that should be preprocessed
+    Parameters
+    ----------
+    data: tf.data.Dataset
+      Dataset that should be preprocessed
 
-  Returns
-  -------
-  train_dataset: tf.data.Dataset
-  val_dataset: tf.data.Dataset
-  """
+    Returns
+    -------
+    train_dataset: tf.data.Dataset
+    val_dataset: tf.data.Dataset
+    """
 
-  split_factor = 0.2  # TESTING: 0.3
-  split_factor_bg = 0.0794  # TESTING: 0.3
+    split_factor = 0.2  # TESTING: 0.3
+    split_factor_bg = 0.0794  # TESTING: 0.3
 
-  count_bg = 3110
-  background = data.take(count_bg)
-  # background = background.repeat(2)
-  # count_bg *= 2
-  # background = background.map(lambda x,y: (x,0))
-  
-  background = shuffle(background, dataset_length=count_bg)
-  background_train, background_val = split(background, dataset_length=count_bg, split_factor=split_factor_bg)  # 0.0659
+    count_bg = 3110
+    background = data.take(count_bg)
+    # background = background.repeat(2)
+    # count_bg *= 2
+    # background = background.map(lambda x,y: (x,0))
 
-  background_train = apply_data_augmentation(background_train)
-  # background_train = background_train.map(lambda x,y: (tf.cast(x, tf.uint8),y))
+    background = shuffle(background, dataset_length=count_bg)
+    background_train, background_val = split(background, dataset_length=count_bg,
+                                             split_factor=split_factor_bg)  # 0.0659
 
-  background_val = apply_data_augmentation(background_val, random_state=None)
-  # background_val = background_val.map(lambda x,y: (tf.cast(x, tf.uint8),y))
+    background_train = apply_data_augmentation(background_train)
+    # background_train = background_train.map(lambda x,y: (tf.cast(x, tf.uint8),y))
 
-  rel = data.skip(3110)
-  count_rel = 206
-  
-  # rel = balance(rel)  # TESTING  NOT GOOD
-  # count_rel = 526  # TESTING  NOT GOOD
+    background_val = apply_data_augmentation(background_val, random_state=None)
+    # background_val = background_val.map(lambda x,y: (tf.cast(x, tf.uint8),y))
 
-  rel = shuffle(rel, dataset_length=count_rel)
+    rel = data.skip(3110)
+    count_rel = 206
 
-  rel_train, rel_val = split(rel, dataset_length=count_rel, split_factor=split_factor)
+    # rel = balance(rel)  # TESTING  NOT GOOD
+    # count_rel = 526  # TESTING  NOT GOOD
 
-  rel_repeat = 6  # TESTING: 5
-  rel_train = rel_train.repeat(rel_repeat)
-  rel_val = rel_val.repeat(rel_repeat)
-  count_rel *= rel_repeat
+    rel = shuffle(rel, dataset_length=count_rel)
 
-  rel_train = shuffle(rel_train, dataset_length=int(count_rel * (1 - split_factor)))  # 1578
-  rel_val = shuffle(rel_val, dataset_length=int(count_rel * split_factor))  # 1578
+    rel_train, rel_val = split(rel, dataset_length=count_rel, split_factor=split_factor)
 
-  rel_train = apply_data_augmentation(rel_train)
-  # rel_train = rel_train.map(lambda x,y: (tf.cast(x, tf.uint8),y))
+    rel_repeat = 6  # TESTING: 5
+    rel_train = rel_train.repeat(rel_repeat)
+    rel_val = rel_val.repeat(rel_repeat)
+    count_rel *= rel_repeat
 
-  rel_val = apply_data_augmentation(rel_val, random_state=None)
-  # rel_val = rel_val.map(lambda x,y: (tf.cast(x, tf.uint8),y))
+    rel_train = shuffle(rel_train, dataset_length=int(count_rel * (1 - split_factor)))  # 1578
+    rel_val = shuffle(rel_val, dataset_length=int(count_rel * split_factor))  # 1578
 
-  # return rel, rel_train, rel_val
+    rel_train = apply_data_augmentation(rel_train)
+    # rel_train = rel_train.map(lambda x,y: (tf.cast(x, tf.uint8),y))
 
-  # return background.take(100).batch(1), background.skip(100).batch(1)
+    rel_val = apply_data_augmentation(rel_val, random_state=None)
+    # rel_val = rel_val.map(lambda x,y: (tf.cast(x, tf.uint8),y))
 
-  data_train = background_train.concatenate(rel_train)
-  data_val = background_val.concatenate(rel_val)
+    # return rel, rel_train, rel_val
 
-  # data_train = shuffle(data_train, dataset_length=int(count_rel * split_factor) + int(count_bg * split_factor_bg))
-  data_train = shuffle(data_train, dataset_length=int(count_rel * (1 - split_factor)) + int(count_bg * (1 - split_factor_bg)))  # 5325 # 4688
+    # return background.take(100).batch(1), background.skip(100).batch(1)
 
-  preprocessor = transfer_learning.get_preprocessor()
-  if preprocessor:
-    data_train = data_train.map(lambda x,y: (preprocessor(x),y))
-    data_val = data_val.map(lambda x,y: (preprocessor(x),y))
-    
-  resizing = transfer_learning.get_input_size()
-  if resizing:
-    data_train = resize(data_train, resizing)
-    data_val = resize(data_val, resizing)
+    data_train = background_train.concatenate(rel_train)
+    data_val = background_val.concatenate(rel_val)
 
-  data_train = data_train.map(lambda x,y: (tf.cast(x, tf.uint8),y))
-  data_val = data_val.map(lambda x,y: (tf.cast(x, tf.uint8),y))
-  # data = normalize(data)
+    # data_train = shuffle(data_train, dataset_length=int(count_rel * split_factor) + int(count_bg * split_factor_bg))
+    data_train = shuffle(data_train, dataset_length=int(count_rel * (1 - split_factor)) + int(
+        count_bg * (1 - split_factor_bg)))  # 5325 # 4688
 
-  # data = shuffle(data, dataset_length=3110+526*6)
-  # train, val = split(data, dataset_length=3110+526*6)
+    preprocessor = transfer_learning.get_preprocessor()
+    if preprocessor:
+        data_train = data_train.map(lambda x, y: (preprocessor(x), y))
+        data_val = data_val.map(lambda x, y: (preprocessor(x), y))
 
-  data_train = one_hot_encode(data_train)
-  data_val = one_hot_encode(data_val)
+    resizing = transfer_learning.get_input_size()
+    if resizing:
+        data_train = resize(data_train, resizing)
+        data_val = resize(data_val, resizing)
 
-  AUTOTUNE = tf.data.AUTOTUNE
-  data_train = data_train.prefetch(buffer_size=AUTOTUNE)
-  data_val = data_val.prefetch(buffer_size=AUTOTUNE)
+    data_train = data_train.map(lambda x, y: (tf.cast(x, tf.uint8), y))
+    data_val = data_val.map(lambda x, y: (tf.cast(x, tf.uint8), y))
+    # data = normalize(data)
 
-  return data_train.batch(32), data_val.batch(32)
+    # data = shuffle(data, dataset_length=3110+526*6)
+    # train, val = split(data, dataset_length=3110+526*6)
+
+    data_train = one_hot_encode(data_train)
+    data_val = one_hot_encode(data_val)
+
+    AUTOTUNE = tf.data.AUTOTUNE
+    data_train = data_train.prefetch(buffer_size=AUTOTUNE)
+    data_val = data_val.prefetch(buffer_size=AUTOTUNE)
+
+    return data_train.batch(32), data_val.batch(32)
